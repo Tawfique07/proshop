@@ -1,15 +1,28 @@
-import { Card, Col, ListGroup, Row } from 'react-bootstrap';
+import { Button, Card, Col, ListGroup, Row } from 'react-bootstrap';
+import { useSelector } from 'react-redux';
 import { useParams } from "react-router-dom";
+import { toast } from 'react-toastify';
 import Loader from "../components/Loader";
 import Message from "../components/Message";
-import { useGetOrderDetailsQuery } from "../slices/ordersApiSlice";
+import { useDeliverOrderMutation, useGetOrderDetailsQuery } from "../slices/ordersApiSlice";
 
 const OrderScreen = () => {
     const { id:orderId } = useParams();
 
-    const { data:order, isLoading, error } = useGetOrderDetailsQuery(orderId);
+    const { userInfo } = useSelector(state => state.auth);
+    const { data:order, refetch, isLoading, error } = useGetOrderDetailsQuery(orderId);
 
-    console.log(order);
+    const [deliverOrder, { isLoading: loadingDeliver }] = useDeliverOrderMutation();
+
+    const deliverOrderHandler = async () => {
+        try {
+            await deliverOrder(orderId);
+            refetch();
+            toast.success('Order Delivered');
+        } catch (error) {
+            toast.error(error?.data?.message || error.error);
+        }
+    }
 
     return isLoading ? ( <Loader /> ) : error ? ( <Message variant='danger'>{error}</Message> ) : (
         <>
@@ -92,6 +105,13 @@ const OrderScreen = () => {
                                     <Col>${order.totalPrice}</Col>
                                 </Row>
                             </ListGroup.Item>
+                            {userInfo && userInfo.isAdmin &&  !order.isDelivered && (
+                                <ListGroup.Item>
+                                    {loadingDeliver ? <Loader /> : (
+                                        <Button onClick={deliverOrderHandler} className='btn btn-block'>Mark As Delivered</Button>
+                                    )}
+                                </ListGroup.Item>
+                            )}
                         </ListGroup>
                     </Card>
                 </Col>
