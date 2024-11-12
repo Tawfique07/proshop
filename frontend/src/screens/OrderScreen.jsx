@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { toast } from 'react-toastify';
 import Loader from "../components/Loader";
 import Message from "../components/Message";
-import { useDeliverOrderMutation, useGetOrderDetailsQuery } from "../slices/ordersApiSlice";
+import { useDeliverOrderMutation, useGetOrderDetailsQuery, usePayOrderMutation } from "../slices/ordersApiSlice";
 
 const OrderScreen = () => {
     const { id:orderId } = useParams();
@@ -13,6 +13,8 @@ const OrderScreen = () => {
     const { data:order, refetch, isLoading, error } = useGetOrderDetailsQuery(orderId);
 
     const [deliverOrder, { isLoading: loadingDeliver }] = useDeliverOrderMutation();
+    const [payOrder, {isLoading: loadingPay}] = usePayOrderMutation();
+
 
     const deliverOrderHandler = async () => {
         try {
@@ -22,6 +24,19 @@ const OrderScreen = () => {
         } catch (error) {
             toast.error(error?.data?.message || error.error);
         }
+    }
+
+    const payOrderHandler = async () => {
+
+        try {
+            await payOrder({ orderId, details: { payer: {} } });
+            refetch();
+            toast.success('Order is paid');
+        } catch (error) {
+            toast.error(error?.data?.message || error.error);
+            
+        }
+        
     }
 
     return isLoading ? ( <Loader /> ) : error ? ( <Message variant='danger'>{error?.data?.message || error.error}</Message> ) : (
@@ -105,10 +120,17 @@ const OrderScreen = () => {
                                     <Col>${order.totalPrice}</Col>
                                 </Row>
                             </ListGroup.Item>
-                            {userInfo && userInfo.isAdmin &&  !order.isDelivered && (
+                            {userInfo && userInfo.isAdmin && order.isPaid && !order.isDelivered && (
                                 <ListGroup.Item>
                                     {loadingDeliver ? <Loader /> : (
                                         <Button onClick={deliverOrderHandler} className='btn btn-block'>Mark As Delivered</Button>
+                                    )}
+                                </ListGroup.Item>
+                            )}
+                            {userInfo && userInfo.isAdmin &&  !order.isPaid && (
+                                <ListGroup.Item>
+                                    {loadingPay ? <Loader /> : (
+                                        <Button onClick={payOrderHandler} className='btn btn-block'>Mark As Paid</Button>
                                     )}
                                 </ListGroup.Item>
                             )}
