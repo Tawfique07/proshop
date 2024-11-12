@@ -41,7 +41,7 @@ const PlaceOrderScreen = () => {
                 console.error('Unexpected response:', res);
             }
         } catch (error) {
-            toast.error(error);
+            toast.error(error?.data?.message || error.error);
         }
     }
 
