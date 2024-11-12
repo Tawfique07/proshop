@@ -96,7 +96,7 @@ const ProfileScreen = () => {
             </Col>
             <Col md={9}>
                 <h2>My Orders</h2>
-                {loadingOrders ? (
+                {loadingOrders || loadingUpdateProfile ? (
                     <Loader />
                 ) : error? (
                     <Message variant='danger'>{error?.data?.message || error.error}</Message>

@@ -18,7 +18,7 @@ const ProductEditScreen = () => {
     const [countInStock, setCountInStock] = useState(0)
     const [description, setDescription] = useState('')
 
-    const { data: product, isLoading, error, refetch } = useGetProductDetailsQuery(productId)
+    const { data: product, isLoading, error } = useGetProductDetailsQuery(productId)
     const [updateProduct, {isLoading: loadingUpdate}] = useUpdateProductMutation()
 
     const [uploadProductImage, {isLoading: loadingUpload}] = useUploadProductImageMutation()
@@ -79,7 +79,7 @@ const ProductEditScreen = () => {
         <FormContainer>
             <h1>Edit Product</h1>
             {loadingUpdate && <Loader />}
-            {error && <Message variant='danger'>{error}</Message>}
+            {error && <Message variant='danger'>{error?.data?.message || error.error}</Message>}
             {isLoading && <Loader />}
             <Form onSubmit={submitHandler}>
                 <Form.Group controlId='name' className='my-2'>
@@ -118,6 +118,8 @@ const ProductEditScreen = () => {
                         custom onChange={uploadFileHandler}
                     ></Form.Control>
                 </Form.Group>
+
+                {loadingUpload && <Loader />}
 
                 <Form.Group controlId='brand' className='my-2'>
                     <Form.Label>Brand</Form.Label>
